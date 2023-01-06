@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -72,8 +73,8 @@ func main() {
 	}
 	//When the program closes close the connection
 	defer c.Close()
-	var jsonString = `{"jsonrpc":"2.0","id": 2, "method": "eth_subscribe", "params": ["alchemy_pendingTransactions"]}`
-	//var jsonString = `{"jsonrpc":"2.0","id": 2, "method": "eth_subscribe", "params": ["alchemy_pendingTransactions", {"toAddress": ["0x07CDfA7A454Ef05db08c9C11261A222392EDB696"]}]}`
+	//var jsonString = `{"jsonrpc":"2.0","id": 2, "method": "eth_subscribe", "params": ["alchemy_pendingTransactions"]}`
+	var jsonString = `{"jsonrpc":"2.0","id": 2, "method": "eth_subscribe", "params": ["alchemy_pendingTransactions", {"toAddress": ["0x07CDfA7A454Ef05db08c9C11261A222392EDB696"]}]}`
 	//var jsonString = `{"method":"eth_getBlockByNumber","params":["pending",false],"id":1,"jsonrpc":"2.0"}`
 	var jsonData = []byte(jsonString)
 
@@ -94,7 +95,7 @@ func main() {
 				log.Println("read:", err)
 				return
 			}
-			//log.Printf("recv: %s", message)
+			log.Printf("recv: %s", message)
 			var data Result
 
 			var errs = json.Unmarshal(message, &data)
@@ -170,21 +171,22 @@ func DecodeTransactionInputData(contractABI *abi.ABI, data string) {
 	// The first 4 bytes of the t represent the ID of the method in the ABI
 	// https://docs.soliditylang.org/en/v0.5.3/abi-spec.html#function-selector
 	//methodSigData := []byte("0xd0e30db0")
-	datax, err := hex.DecodeString("0xd0e30db0")
-	methodSigData := datax[:4]
-	method, err := contractABI.MethodById(methodSigData)
+	datasplit := bytes.TrimLeft([]byte(data), "0x")
+	datax, err := hex.DecodeString(string(datasplit[:]))
+	//methodSigData := datax[4:]
+	method, err := contractABI.MethodById(datax)
 	if err != nil {
 		panic(err)
 	}
 
-	//inputsSigData := data[4:]
+	//inputsSigData := datax[4:]
 	//inputsMap := make(map[string]interface{})
 	//if err := method.Inputs.UnpackIntoMap(inputsMap, inputsSigData); err != nil {
 	//	panic(err)
 	//}
 
 	fmt.Printf("Method Name: %s\n", method.Name)
-	//fmt.Printf("Method inputs: %v\n", MapToJson(inputsMap))
+	//fmt.Printf("Method inputs: %v\n", inputsMap)
 
 	//encodedData := "d0e30db0"
 	//decodeData, err := hex.DecodeString(encodedData)
