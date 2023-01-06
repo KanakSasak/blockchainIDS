@@ -108,7 +108,14 @@ func main() {
 			if data.Params.Result.To == "0x07CDfA7A454Ef05db08c9C11261A222392EDB696" || data.Params.Result.To == "0x07cdfa7a454ef05db08c9c11261a222392edb696" {
 				log.Println("Invoked!!!")
 				log.Printf("recv: %s", data.Params.Result.Input)
-				DecodeTransactionInputData(&contractABI, data.Params.Result.Input)
+				method := DecodeTransactionInputData(&contractABI, data.Params.Result.Input)
+
+				fmt.Println(method)
+				fmt.Println(data.Params.Result.From)
+
+				if method == "withdraw" && data.Params.Result.From != "0x48959bd965c11Ff0F9C12Ef0Bb4eAE2bdBe1dB59" {
+					log.Println("Indicates attack!!")
+				}
 			}
 
 		}
@@ -167,7 +174,7 @@ func GetLocalABI(path string) string {
 	return string(result)
 }
 
-func DecodeTransactionInputData(contractABI *abi.ABI, data string) {
+func DecodeTransactionInputData(contractABI *abi.ABI, data string) string {
 	// The first 4 bytes of the t represent the ID of the method in the ABI
 	// https://docs.soliditylang.org/en/v0.5.3/abi-spec.html#function-selector
 	//methodSigData := []byte("0xd0e30db0")
@@ -185,7 +192,7 @@ func DecodeTransactionInputData(contractABI *abi.ABI, data string) {
 	//	panic(err)
 	//}
 
-	fmt.Printf("Method Name: %s\n", method.Name)
+	//fmt.Printf("Method Name: %s\n", method.Name)
 	//fmt.Printf("Method inputs: %v\n", inputsMap)
 
 	//encodedData := "d0e30db0"
@@ -203,5 +210,7 @@ func DecodeTransactionInputData(contractABI *abi.ABI, data string) {
 	//	log.Println(ok)
 	//
 	//}
+
+	return method.Name
 
 }
